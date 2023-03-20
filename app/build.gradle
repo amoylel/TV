@@ -1,0 +1,133 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 33
+    flavorDimensions "mode", "api"
+
+    defaultConfig {
+        applicationId "com.fongmi.android.tv"
+        minSdk 21
+        targetSdk 29
+        ndk { abiFilters "armeabi-v7a" }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation":
+                                     "$projectDir/schemas".toString()]
+            }
+        }
+
+    }
+
+    productFlavors {
+        leanback {
+            dimension "mode"
+            versionCode 70
+            versionName "1.7.0"
+        }
+        mobile {
+            dimension "mode"
+            versionCode 6
+            versionName "20230302"
+        }
+        java {
+            dimension = "api"
+        }
+        python {
+            dimension = "api"
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            zipAlignEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
+        }
+    }
+
+    sourceSets {
+        leanback {
+            java {
+                srcDirs 'src\\leanback\\java', 'src\\tvbox\\java'
+            }
+            res {
+                srcDirs 'src\\leanback\\res', 'src\\tvbox\\res'
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation project(':drpy')
+    implementation project(':tvbus')
+    implementation project(':zlive')
+    implementation project(':catvod')
+    implementation project(':forcetech')
+    implementation project(':ijkplayer')
+    implementation 'androidx.core:core:1.7.0'
+    pythonImplementation project(':pyramid')
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.5.1'
+    implementation 'androidx.preference:preference:1.2.0'
+    implementation 'androidx.room:room-runtime:2.5.0'
+    implementation 'cat.ereza:customactivityoncrash:2.4.0'
+    implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
+    implementation 'com.github.bumptech.glide:glide:4.14.2'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.4'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.net.cronet:cronet-okhttp:0.1.0'
+    implementation 'com.google.zxing:core:3.3.0'
+    implementation 'com.guolindev.permissionx:permissionx:1.7.1'
+    implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.10'
+    implementation 'net.java.dev.jna:jna:5.12.1'
+    implementation 'org.apache.commons:commons-compress:1.20'
+    implementation 'org.chromium.net:cronet-embedded:101.4951.41'
+    implementation 'org.greenrobot:eventbus:3.3.1'
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+    implementation('org.simpleframework:simple-xml:2.7.1') { exclude group: 'stax', module: 'stax-api' exclude group: 'xpp3', module: 'xpp3' }
+    leanbackImplementation 'androidx.leanback:leanback:1.2.0-alpha02'
+    leanbackImplementation 'me.jessyan:autosize:1.2.1'
+    mobileImplementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    annotationProcessor 'androidx.room:room-compiler:2.5.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
+
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.squareup.okio:okio:2.6.0'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.45-androidx'
+    implementation 'com.kingja.loadsir:loadsir:1.3.8'
+    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation('com.thoughtworks.xstream:xstream:1.4.15') {
+        exclude group: 'xmlpull', module: 'xmlpull'
+    }
+
+    implementation 'com.orhanobut:hawk:2.0.1'
+
+    implementation 'com.lzy.net:okgo:3.0.4'
+    implementation 'com.owen:tv-recyclerview:3.0.0'
+
+    implementation 'com.wang.avi:library:2.1.3'
+}

@@ -1,0 +1,29 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        jcenter()
+        google()
+        maven { url "https://jitpack.io" }
+        maven { url 'https://download.01.org/crosswalk/releases/crosswalk/android/maven2' }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        jcenter()
+        google()
+        maven { url "https://jitpack.io" }
+        maven { url 'https://download.01.org/crosswalk/releases/crosswalk/android/maven2' }
+    }
+}
+include ':app'
+include ':drpy'
+include ':zlive'
+include ':tvbus'
+include ':catvod'
+include ':pyramid'
+include ':forcetech'
+include ':ijkplayer'
+rootProject.name = "TV"

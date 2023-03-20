@@ -22,9 +22,16 @@ import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import okhttp3.Call;
 
 public class SearchActivity extends BaseActivity {
@@ -35,6 +42,8 @@ public class SearchActivity extends BaseActivity {
 
     private static ArrayList<String> hotQQ;
     private static ArrayList<String> hotIQY;
+
+    private ExecutorService executor = Executors.newFixedThreadPool(1);
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SearchActivity.class));
     }
@@ -120,36 +129,47 @@ public class SearchActivity extends BaseActivity {
             OkHttp.newCall(String.format("https://node.video.qq.com/x/api/hot_mobilesearch?channdlId=0&_=%d", System.currentTimeMillis())).enqueue(new Callback() {
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull okhttp3.Response response) throws IOException {
-                try {
-                    ArrayList<String> hots = new ArrayList<>();
-                    JsonArray itemList = JsonParser.parseString(response.body().string()).getAsJsonObject().get("data").getAsJsonObject().get("itemList").getAsJsonArray();
-                    for (JsonElement ele : itemList) {
-                        JsonObject obj = (JsonObject) ele;
-                        hots.add(obj.get("title").getAsString().trim().replaceAll("<|>|《|》|-", "").split(" ")[0]);
+                    try {
+                        ArrayList<String> hots = new ArrayList<>();
+                        JsonArray itemList = JsonParser.parseString(response.body().string()).getAsJsonObject().get("data").getAsJsonObject().get("itemList").getAsJsonArray();
+                        for (JsonElement ele : itemList) {
+                            JsonObject obj = (JsonObject) ele;
+                            hots.add(obj.get("title").getAsString().trim().replaceAll("<|>|《|》|-", "").split(" ")[0]);
+                        }
+                        hotQQ = hots;
+                        App.post(() -> wordAdapter.setNewData(hotQQ));
+    
+                    }catch (Exception e){
+                        
                     }
-                    hotQQ = hots;
-                    App.post(() -> wordAdapter.setNewData(hotQQ));
-
-                }catch (Exception e){
-                }
                 }
             });
         } else {
-            OkHttp.newCall(String.format("https://s.video.qq.com/smartbox?plat=2&ver=0&num=20&otype=json&query=%s", key)).enqueue(new Callback() {
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull okhttp3.Response response) {
+            executor.execute(()->{
                 try {
+                    String url = "https://pbaccess.video.qq.com/trpc.videosearch.smartboxServer.HttpRountRecall/Smartbox";
+                    HashMap<String, String> header = new HashMap<>();
+                    header.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36");
+                    header.put("Referer", "https://v.qq.com/");
+                    header.put("Content-Type", "application/json");
+                    //{"query":"dl","appID":"3172","appKey":"lGhFIPeD3HsO9xEp","pageNum":0,"pageSize":10}
+                    JSONObject body = new JSONObject();
+                    body.put("query", key).put("pageNum", 0).put("pageSize",10).put("appID", "").put("appKey", "");
+                    String res = com.github.tvbox.osc.net.OkHttp.postJson(url, body.toString(), header);
+                    JSONObject result = new JSONObject(res);
                     ArrayList<String> hots = new ArrayList<>();
-                    String result = response.body().string();
-                    JsonObject json = JsonParser.parseString(result.substring(result.indexOf("{"), result.lastIndexOf("}") + 1)).getAsJsonObject();
-                    JsonArray itemList = json.get("item").getAsJsonArray();
-                    for (JsonElement ele : itemList) {
-                        JsonObject obj = (JsonObject) ele;
-                        hots.add(obj.get("word").getAsString().trim());
+                    JSONArray arr =  result.getJSONObject("data").getJSONArray("smartboxItemList");
+                    for (int i =0; i < arr.length(); ++i){
+                        JSONObject basicDoc = arr.getJSONObject(i).getJSONObject("basicDoc");
+                        String name = basicDoc.getString("title")
+                                .replace("<em>", "")
+                                .replace("</em>","")
+                                .trim();
+                        hots.add(name);
                     }
                     App.post(() -> wordAdapter.setNewData(hots));
                 }catch (Exception e){
-                }
+                    e.printStackTrace();
                 }
             });
         }

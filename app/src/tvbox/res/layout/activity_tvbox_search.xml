@@ -173,7 +173,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="@dimen/vs_10"
-            android:text="爱奇艺搜索"
+            android:text="爱奇艺热搜"
             android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="@dimen/ts_24" />

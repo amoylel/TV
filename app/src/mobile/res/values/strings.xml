@@ -6,15 +6,15 @@
 
     <!-- Home -->
     <string name="home">Home</string>
-    <string name="home_history">History</string>
-    <string name="home_recommend">Recommend</string>
-    <string name="home_open_url">Open <xliff:g name="name">%s</xliff:g> ?</string>
+
+    <!-- History -->
+    <string name="history">History</string>
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>
+    <string name="detail_more">More</string>
     <string name="detail_episode">Episode</string>
     <string name="detail_content">Summary</string>
-    <string name="detail_content_expand">Expand</string>
-    <string name="detail_content_collapse">Collapse</string>
+    <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
 
 </resources>

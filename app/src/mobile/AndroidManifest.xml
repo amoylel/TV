@@ -42,8 +42,17 @@
         <activity
             android:name=".ui.activity.CollectActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:screenOrientation="userPortrait"
-            android:windowSoftInputMode="adjustPan" />
+            android:screenOrientation="userPortrait" />
+
+        <activity
+            android:name=".ui.activity.HistoryActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="userPortrait" />
+
+        <activity
+            android:name=".ui.activity.KeepActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="userPortrait" />
 
     </application>
 </manifest>

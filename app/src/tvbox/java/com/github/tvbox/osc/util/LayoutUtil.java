@@ -18,7 +18,7 @@ public class LayoutUtil {
     }
     public void updateLayoutSize() {
         int space =  160 +  (30 * (Product.getColumn() - 1));
-        screenWidth = ResUtil.getScreenWidthPx() - space;
+        screenWidth = ResUtil.getScreenWidth() - space;
     }
 
     public int getWidth(){

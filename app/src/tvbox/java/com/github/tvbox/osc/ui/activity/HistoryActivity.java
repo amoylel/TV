@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.ApiConfig;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.databinding.ActivityHistoryBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -58,14 +59,21 @@ public class HistoryActivity extends BaseActivity {
 
         mBinding.mGridView.setOnItemListener(ImgUtil.animate());
         historyAdapter.setOnItemClickListener((adapter, view, position) -> {
-            History vodInfo = historyAdapter.getData().get(position);
-            if (vodInfo == null) return;
+            History vod = historyAdapter.getData().get(position);
+            if (vod == null) return;
             if (delMode) {
                 historyAdapter.remove(position);
-                vodInfo.delete();
+                vod.delete();
             } else {
-                DetailActivity.start(getActivity(), vodInfo.getSiteKey(), vodInfo.getVodId(), vodInfo.getVodName());
+                DetailActivity.start(getActivity(), vod.getSiteKey(), vod.getVodId(), vod.getVodName());
             }
+        });
+
+        historyAdapter.setOnItemLongClickListener((adapter, view, position) -> {
+            if(delMode) return true;
+            History vod = historyAdapter.getItem(position);
+            FastSearchActivity.start(getActivity(),ApiConfig.get().getHome().getKey(), vod.getVodName());
+            return true;
         });
     }
 

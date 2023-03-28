@@ -67,19 +67,21 @@ public class CollectActivity extends BaseActivity {
         mBinding.mGridView.setOnItemListener(ImgUtil.animate());
         collectAdapter.setOnItemClickListener((adapter, view, position) ->   {
             FastClickCheckUtil.check(view);
-            Keep vodInfo = collectAdapter.getData().get(position);
-            if (vodInfo != null) {
-                if (delMode) {
-                    collectAdapter.remove(position);
-                    Keep.delete(vodInfo.getCid());
-                } else {
-                    if (ApiConfig.get().getSite(vodInfo.getSiteKey()) != null) {
-                        DetailActivity.start(getActivity(), vodInfo.getSiteKey(), vodInfo.getVodId(), vodInfo.getVodName());
-                    } else {
-                        FastSearchActivity.start(getActivity(), vodInfo.getSiteKey(), vodInfo.getVodName());
-                    }
-                }
+            Keep vod = collectAdapter.getData().get(position);
+            if (vod == null) return;
+            if (delMode) {
+                collectAdapter.remove(position);
+                Keep.delete(vod.getCid());
+            } else {
+                DetailActivity.start(getActivity(), vod.getSiteKey(), vod.getVodId(), vod.getVodName());
             }
+        });
+
+        collectAdapter.setOnItemLongClickListener((adapter, view, position) -> {
+            if(delMode) return true;
+            Keep vod = collectAdapter.getItem(position);
+            FastSearchActivity.start(getActivity(),ApiConfig.get().getHome().getKey(), vod.getVodName());
+            return true;
         });
     }
 

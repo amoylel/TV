@@ -39,7 +39,12 @@ public class DataLoader {
             Hawk.put("homeContent", val);
         }).start();
     }
-
+    public boolean isSiteChanged(Site site){
+        if(this.site == null || site == null) return false;
+        if(!this.site.getKey().equals(site.getKey())) return true;
+        if(!this.site.getName().equals(site.getName())) return true;
+        return false;
+    }
     public void clear(){
         Hawk.delete("homeSite");
         Hawk.delete("homeContent");
@@ -55,8 +60,9 @@ public class DataLoader {
         }
         List<Class> rhsTypes = rhs.getTypes();
         List<Class> lhsTypes = this.val.getTypes();
-        this.put(site, rhs); // 更新
-        if(rhsTypes.size() != lhsTypes.size()) return true;
+        boolean changed = isSiteChanged(site);
+        this.put(site, rhs);
+        if(changed || rhsTypes.size() != lhsTypes.size()) return true;
         for (int i =0; i < rhsTypes.size(); ++i){
             if(!rhsTypes.get(i).getTypeId().equals(lhsTypes.get(i).getTypeId())) return true;
         }

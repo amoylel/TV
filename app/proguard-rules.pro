@@ -116,3 +116,7 @@
 
 -keep class com.wang.avi.** { *; }
 -keep class com.wang.avi.indicators.** { *; }
+
+-dontwarn javax.xml.stream.events.**
+-keep class org.simpleframework.xml.**{*;}
+-dontwarn org.simpleframework.xml.**

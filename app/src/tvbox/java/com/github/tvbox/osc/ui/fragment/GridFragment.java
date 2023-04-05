@@ -256,11 +256,12 @@ public class GridFragment extends BaseLazyFragment {
             gridFilterDialog = new GridFilterDialog(mContext);
             gridFilterDialog.setData(sortData);
             gridFilterDialog.setOnDismiss((c) -> {
-                ImageView img = view.findViewById(R.id.tvFilter);
-                img.setImageResource(R.drawable.ic_filter_on);
                 if(c){
                     page = 1;
                     initData();
+                }else{
+                    ImageView img = view.findViewById(R.id.tvFilter);
+                    img.setImageResource(R.drawable.ic_filter_on);
                 }
             });
         }

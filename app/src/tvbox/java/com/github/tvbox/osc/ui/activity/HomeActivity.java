@@ -15,13 +15,9 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.api.ApiConfig;
-import com.fongmi.android.tv.api.LiveConfig;
-import com.fongmi.android.tv.api.WallConfig;
+import com.fongmi.android.tv.api.*;
+import com.fongmi.android.tv.bean.*;
 import com.fongmi.android.tv.bean.Class;
-import com.fongmi.android.tv.bean.Filter;
-import com.fongmi.android.tv.bean.Result;
-import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivityTvboxHomeBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
@@ -31,19 +27,11 @@ import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.activity.DetailActivity;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.tvbox.osc.bean.SortData;
-import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
-import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
-import com.github.tvbox.osc.ui.adapter.SortAdapter;
+import com.github.tvbox.osc.ui.adapter.*;
 import com.github.tvbox.osc.ui.dialog.SelectDialog;
-import com.github.tvbox.osc.ui.fragment.BaseLazyFragment;
-import com.github.tvbox.osc.ui.fragment.GridFragment;
-import com.github.tvbox.osc.ui.fragment.UserFragment;
-import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
-import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
-import com.github.tvbox.osc.util.DataLoader;
-import com.github.tvbox.osc.util.DefaultConfig;
-import com.github.tvbox.osc.util.DouBan;
-import com.github.tvbox.osc.util.LayoutUtil;
+import com.github.tvbox.osc.ui.fragment.*;
+import com.github.tvbox.osc.ui.tv.widget.*;
+import com.github.tvbox.osc.util.*;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
@@ -51,11 +39,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
@@ -153,12 +137,13 @@ public class HomeActivity extends BaseActivity {
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
                 if (itemView != null && mViewPager.getCurrentItem() == position) {
-                    BaseLazyFragment baseLazyFragment = fragments.get(mViewPager.getCurrentItem());
-                    if (baseLazyFragment instanceof UserFragment) showSiteSwitch();
-                    if ((baseLazyFragment instanceof GridFragment) && !sortAdapter.getItem(position).filters.isEmpty()) { // 弹出筛选
-                        ((GridFragment) baseLazyFragment).showFilter(itemView);
-                        ((ImageView) itemView.findViewById(R.id.tvFilter)).setImageResource(R.drawable.ic_filter_off);
-                    }
+                    onItemSelect(itemView, position);
+//                    BaseLazyFragment baseLazyFragment = fragments.get(mViewPager.getCurrentItem());
+//                    if (baseLazyFragment instanceof UserFragment) showSiteSwitch();
+//                    if ((baseLazyFragment instanceof GridFragment) && !sortAdapter.getItem(position).filters.isEmpty()) { // 弹出筛选
+//                        ((GridFragment) baseLazyFragment).showFilter(itemView);
+//                        ((ImageView) itemView.findViewById(R.id.tvFilter)).setImageResource(R.drawable.ic_filter_off);
+//                    }
                 }
             }
         });
@@ -173,6 +158,14 @@ public class HomeActivity extends BaseActivity {
         mBinding.tvName.setOnClickListener(view -> showSiteSwitch());
     }
 
+    private void onItemSelect(View itemView, int position){
+        BaseLazyFragment baseLazyFragment = fragments.get(mViewPager.getCurrentItem());
+        if (baseLazyFragment instanceof UserFragment) showSiteSwitch();
+        if ((baseLazyFragment instanceof GridFragment) && !sortAdapter.getItem(position).filters.isEmpty()) { // 弹出筛选
+            ((GridFragment) baseLazyFragment).showFilter(itemView);
+            ((ImageView) itemView.findViewById(R.id.tvFilter)).setImageResource(R.drawable.ic_filter_off);
+        }
+    }
     private void onBlur(View view, int position) {
         if (view == null || isDownOrUp) return;
         if (view == mBinding.mGridView.getChildAt(mViewPager.getCurrentItem())) return;
@@ -195,13 +188,14 @@ public class HomeActivity extends BaseActivity {
         return new Callback() {
             @Override
             public void success() {
+                Notify.show("配置文件加载成功");
                 runTask(() -> initDataFromNet(false));
             }
 
             @Override
             public void error(int resId) {
-                Notify.show(resId);
-                runTask(() -> initDataFromEmpty());
+                Notify.show("配置文件加载失败");
+                runTask(() -> initDataFromNet(false));
             }
         };
     }
@@ -212,18 +206,8 @@ public class HomeActivity extends BaseActivity {
     }
 
     private void initDataFromCache() {
-        if (!fragments.isEmpty()) return;
         resetViewPager();
         onHomeContent(DataLoader.get().val, false);
-    }
-
-    private void initDataFromEmpty() {
-        DataLoader.get().setLoaded(true);
-        showSuccess();
-        if (sortAdapter != null && sortAdapter.getItemCount() == 1 && sortAdapter.getItem(0).name == "TVBox")
-            return;
-        resetViewPager();
-        onHomeContent(null, true);
     }
 
     private void initDataFromNet(boolean clear) {
@@ -306,7 +290,16 @@ public class HomeActivity extends BaseActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch();
+        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+            if(mViewPager.getCurrentItem() == 0){
+                showSiteSwitch();
+            }else{
+                int postion = mViewPager.getCurrentItem();
+                View view = mBinding.mGridView.getChildAt(postion);
+                if(view != null) onItemSelect(view,postion);
+            }
+
+        }
         return super.dispatchKeyEvent(event);
     }
 

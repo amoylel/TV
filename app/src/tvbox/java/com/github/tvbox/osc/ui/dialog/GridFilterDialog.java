@@ -31,7 +31,7 @@ import java.util.List;
 
 public class GridFilterDialog extends BaseDialog {
     private LinearLayout filterRoot;
-
+    private Callback callback;
     public GridFilterDialog(@NonNull @NotNull Context context) {
         super(context);
         setCanceledOnTouchOutside(false);
@@ -45,7 +45,8 @@ public class GridFilterDialog extends BaseDialog {
     }
 
     public void setOnDismiss(Callback callback) {
-        setOnDismissListener(dialogInterface -> callback.change(selectChange));
+        this.callback = callback;
+        setOnDismissListener(dialogInterface -> callback.change(false));
     }
 
     public void setData(SortData sortData) {
@@ -73,7 +74,6 @@ public class GridFilterDialog extends BaseDialog {
 
                 @Override
                 public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                    selectChange = true;
                     String filterSelect = sortData.filterSelect.get(key);
                     if (filterSelect == null || !filterSelect.equals(keys.get(position))) {
                         sortData.filterSelect.put(key, keys.get(position));
@@ -93,6 +93,8 @@ public class GridFilterDialog extends BaseDialog {
                         val.setTextColor(getContext().getResources().getColor(R.color.color_FFFFFF));
                         pre = null;
                     }
+
+                    if(callback != null) callback.change(true);
                 }
             });
             filterKVAdapter.setNewData(values);
@@ -100,10 +102,9 @@ public class GridFilterDialog extends BaseDialog {
         }
     }
 
-    private boolean selectChange = false;
+
 
     public void show() {
-        selectChange = false;
         super.show();
         WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
         layoutParams.gravity = Gravity.BOTTOM;

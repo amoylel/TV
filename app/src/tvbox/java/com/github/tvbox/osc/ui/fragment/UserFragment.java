@@ -24,6 +24,7 @@ import com.fongmi.android.tv.ui.activity.DetailActivity;
 import com.fongmi.android.tv.ui.activity.LiveActivity;
 import com.fongmi.android.tv.ui.activity.PushActivity;
 import com.fongmi.android.tv.ui.activity.SettingActivity;
+import com.github.tvbox.osc.util.DataLoader;
 import com.github.tvbox.osc.util.DouBan;
 import com.github.tvbox.osc.util.ImgUtil;
 import com.google.gson.Gson;
@@ -108,7 +109,9 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         mBinding.tvHotList1.setAdapter(homeHotVodAdapter);
         homeHotVodAdapter.setNewData(DouBan.get().load(movies -> homeHotVodAdapter.setNewData(movies == null ? new ArrayList<>(): movies)));
 
-        homeSiteVodAdapter = new HomeHotVodAdapter(ApiConfig.get().getHome().getName());
+        String tag = ApiConfig.get().getHome().getName();
+        if(tag.isEmpty()) tag = DataLoader.get().site.getName();
+        homeSiteVodAdapter = new HomeHotVodAdapter(tag);
         homeSiteVodAdapter.setOnItemClickListener(this::onItemClick);
         homeSiteVodAdapter.setOnItemLongClickListener(this::onItemLongClick);
         mBinding.tvHotList2.setOnItemListener(ImgUtil.animate());

@@ -388,13 +388,25 @@ public class FastSearchActivity extends BaseActivity {
         }
     }
 
+    private boolean matchSearchResult(String name, String searchTitle) {
+        if(name == null || name.isEmpty()) return false;
+        if(searchTitle == null || searchTitle.isEmpty()) return false;
+        searchTitle = searchTitle.trim();
+        String[] arr = searchTitle.split("\\s+");
+        int matchNum = 0;
+        for(int i =0; i < searchTitle.length(); ++i){
+            if(name.indexOf(searchTitle.charAt(i) )!= -1) matchNum++;
+        }
+        return (matchNum >= Math.max(1, arr.length / 2)) ? true : false;
+    }
+
     private void onSearchResult(Result result) {
         String lastSourceKey = "";
 
         if (result != null && result.getList().size() > 0) {
             List<Vod> data = new ArrayList<>();
             for (Vod video : result.getList()) {
-//                if (!matchSearchResult(video.getVodName(), searchTitle)) continue;
+                if (!matchSearchResult(video.getVodName(), searchTitle)) continue;
                 data.add(video);
                 if (!resultVods.containsKey(video.getSiteKey())) {
                     resultVods.put(video.getSiteKey(), new ArrayList<>());

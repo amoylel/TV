@@ -21,10 +21,12 @@ import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.databinding.ActivityTvboxHomeBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
+import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.net.Callback;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.activity.DetailActivity;
+import com.fongmi.android.tv.ui.custom.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.tvbox.osc.bean.SortData;
 import com.github.tvbox.osc.ui.adapter.*;
@@ -43,7 +45,7 @@ import java.util.*;
 
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
-public class HomeActivity extends BaseActivity {
+public class HomeActivity extends BaseActivity implements SiteCallback {
     private SiteViewModel sourceViewModel;
     private SortAdapter sortAdapter;
     private List<BaseLazyFragment> fragments = new ArrayList<>();
@@ -298,7 +300,6 @@ public class HomeActivity extends BaseActivity {
                 View view = mBinding.mGridView.getChildAt(postion);
                 if(view != null) onItemSelect(view,postion);
             }
-
         }
         return super.dispatchKeyEvent(event);
     }
@@ -309,35 +310,7 @@ public class HomeActivity extends BaseActivity {
     }
 
     void showSiteSwitch() {
-        List<Site> sites = ApiConfig.get().getSites();
-        if (sites.size() > 0) {
-            SelectDialog<Site> dialog = new SelectDialog<>(HomeActivity.this);
-            dialog.setTip("请选择首页数据源");
-            dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<Site>() {
-                @Override
-                public void click(Site value, int pos) {
-                    ApiConfig.get().setHome(value);
-                    initDataFromNet(true);
-                    dialog.hide();
-                }
-
-                @Override
-                public String getDisplay(Site val) {
-                    return val.getName();
-                }
-            }, new DiffUtil.ItemCallback<Site>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull @NotNull Site oldItem, @NonNull @NotNull Site newItem) {
-                    return oldItem == newItem;
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull @NotNull Site oldItem, @NonNull @NotNull Site newItem) {
-                    return oldItem.getKey().equals(newItem.getKey());
-                }
-            }, sites, sites.indexOf(ApiConfig.get().getHome()));
-            dialog.show();
-        }
+        SiteDialog.create(this).change().show();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -363,5 +336,15 @@ public class HomeActivity extends BaseActivity {
             default:
                 break;
         }
+    }
+
+    @Override
+    public void setSite(Site item) {
+        ApiConfig.get().setHome(item);
+        initDataFromNet(true);
+    }
+
+    @Override
+    public void onChanged() {
     }
 }

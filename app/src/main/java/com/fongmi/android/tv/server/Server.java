@@ -44,7 +44,7 @@ public class Server implements Nano.Listener {
             try {
                 nano = new Nano(port);
                 nano.setListener(this);
-                nano.start();
+                nano.start(20000, true);
                 break;
             } catch (Exception e) {
                 ++port;

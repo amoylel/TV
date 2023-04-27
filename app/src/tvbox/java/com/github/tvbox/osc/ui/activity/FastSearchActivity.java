@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.api.ApiConfig;
 import com.fongmi.android.tv.bean.Result;
@@ -261,12 +262,28 @@ public class FastSearchActivity extends BaseActivity {
         });
     }
 
+    protected void showLoading() {
+        super.showSuccess();
+        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    protected void showSuccess() {
+        super.showSuccess();
+        mBinding.progress.getRoot().setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void showEmpty() {
+        super.showEmpty();
+        mBinding.progress.getRoot().setVisibility(View.GONE);
+    }
+
     private void initData() {
         initCheckedSourcesForSearch();
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("title")) {
             String title = intent.getStringExtra("title");
-            showLoading();
             search(title);
         }
     }

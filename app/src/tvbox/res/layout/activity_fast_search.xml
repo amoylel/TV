@@ -64,10 +64,20 @@
             android:id="@+id/llLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
             android:paddingLeft="15dp"
             android:paddingBottom="@dimen/vs_20"
             android:paddingRight="15dp" >
+
+            <include
+                android:id="@+id/progress"
+                layout="@layout/view_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:visibility="visible" />
 
             <com.owen.tvrecyclerview.widget.TvRecyclerView
                 android:id="@+id/mGridView"

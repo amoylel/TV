@@ -31,7 +31,7 @@ public class HistoryAdapter extends BaseQuickAdapter<History, BaseViewHolder> {
         if (item.getVodRemarks().isEmpty()) {
             helper.setVisible(R.id.tvNote, false);
         } else {
-            helper.setText(R.id.tvNote, item.getVodRemarks());
+            helper.setText(R.id.tvNote,  "上次看到:" + item.getVodRemarks());
         }
         helper.setText(R.id.tvName, item.getVodName());
         ImgUtil.load(item.getVodPic(), helper.getView(R.id.ivThumb));

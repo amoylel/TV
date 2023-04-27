@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -30,7 +29,6 @@ import com.fongmi.android.tv.ui.custom.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.tvbox.osc.bean.SortData;
 import com.github.tvbox.osc.ui.adapter.*;
-import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.ui.fragment.*;
 import com.github.tvbox.osc.ui.tv.widget.*;
 import com.github.tvbox.osc.util.*;
@@ -39,10 +37,8 @@ import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
 public class HomeActivity extends BaseActivity implements SiteCallback {
@@ -56,6 +52,7 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
     private boolean isDownOrUp = false;
     public View sortFocusView = null;
     private Queue<Runnable> mDelayTasks = new LinkedList<>();
+    private boolean mLoaded = false;
     @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityTvboxHomeBinding.inflate(getLayoutInflater());
@@ -70,17 +67,16 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
 
     @Override
     protected void initView() {
-        setLoadSir(mBinding.contentLayout);
-        showLoading();
         DataLoader.get().setLoaded(false);
         DouBan.get().load(null);
+        runTask(()-> waitLoading(()->{}));
         new Thread(() -> {
             Server.get().start();
             WallConfig.get().init();
             LiveConfig.get().init();
             ApiConfig.get().init().load(getCallback());
             DataLoader.get().init();
-            runTask(() -> initDataFromCache());// 加载缓存数据
+            if(!DataLoader.get().site.getName().isEmpty() && DataLoader.get().val != null) runTask(() -> onHomeContent(DataLoader.get().val, DataLoader.get().site));// 加载缓存数据
         }).start();
     }
 
@@ -140,12 +136,6 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
                 if (itemView != null && mViewPager.getCurrentItem() == position) {
                     onItemSelect(itemView, position);
-//                    BaseLazyFragment baseLazyFragment = fragments.get(mViewPager.getCurrentItem());
-//                    if (baseLazyFragment instanceof UserFragment) showSiteSwitch();
-//                    if ((baseLazyFragment instanceof GridFragment) && !sortAdapter.getItem(position).filters.isEmpty()) { // 弹出筛选
-//                        ((GridFragment) baseLazyFragment).showFilter(itemView);
-//                        ((ImageView) itemView.findViewById(R.id.tvFilter)).setImageResource(R.drawable.ic_filter_off);
-//                    }
                 }
             }
         });
@@ -160,7 +150,7 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
         mBinding.tvName.setOnClickListener(view -> showSiteSwitch());
     }
 
-    private void onItemSelect(View itemView, int position){
+    private void onItemSelect(View itemView, int position) {
         BaseLazyFragment baseLazyFragment = fragments.get(mViewPager.getCurrentItem());
         if (baseLazyFragment instanceof UserFragment) showSiteSwitch();
         if ((baseLazyFragment instanceof GridFragment) && !sortAdapter.getItem(position).filters.isEmpty()) { // 弹出筛选
@@ -168,6 +158,7 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
             ((ImageView) itemView.findViewById(R.id.tvFilter)).setImageResource(R.drawable.ic_filter_off);
         }
     }
+
     private void onBlur(View view, int position) {
         if (view == null || isDownOrUp) return;
         if (view == mBinding.mGridView.getChildAt(mViewPager.getCurrentItem())) return;
@@ -190,44 +181,35 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
         return new Callback() {
             @Override
             public void success() {
+                mLoaded = true;
                 Notify.show("配置文件加载成功");
-                runTask(() -> initDataFromNet(false));
+                runTask(() -> initDataFromNet());
             }
 
             @Override
             public void error(int resId) {
+                mLoaded = true;
                 Notify.show("配置文件加载失败");
-                runTask(() -> initDataFromNet(false));
+                runTask(() -> initDataFromNet());
             }
         };
     }
 
     private void initViewModel() {
         sourceViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        sourceViewModel.result.observe(this, result -> onHomeContent(result, true));
+        sourceViewModel.result.observe(this, result -> onHomeContent(result, ApiConfig.get().getHome()));
     }
 
-    private void initDataFromCache() {
-        resetViewPager();
-        onHomeContent(DataLoader.get().val, false);
-    }
-
-    private void initDataFromNet(boolean clear) {
-        DataLoader.get().setLoaded(false);   // 将加载状态标记为未完成
-        if (clear) {
-            showLoading(); //
-            DataLoader.get().clear();
-        }
-        if (mViewPager == null || clear) resetViewPager();
+    private void initDataFromNet() {
+        DataLoader.get().setLoaded(false);
+        if(!DataLoader.get().site.getKey().equals(ApiConfig.get().getHome().getKey())) waitLoading(()->{});
         sourceViewModel.homeContent();
     }
 
-    private void onHomeContent(Result result, boolean refresh) {
-        if (refresh) runTask(() -> DataLoader.get().setLoaded(true));
-        if (refresh && DataLoader.get().refresh(ApiConfig.get().getHome(), result)) { // 判断是否需要重新初始化当前数据
-            runTask(() -> initDataFromCache());
-            return;
-        }
+    private void onHomeContent(Result result, Site home) {
+        if(result != DataLoader.get().val || home != DataLoader.get().site) DataLoader.get().put(home, result);
+        DataLoader.get().setLoaded(true);
+        if(!mLoaded) App.post(()-> DataLoader.get().setLoaded(false) , 60);
         showSuccess();
         List<SortData> list = new ArrayList<>();
         if (result == null) result = new Result();
@@ -238,11 +220,18 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
             if (filters.containsKey(data.id)) data.filters = filters.get(data.id);
             list.add(data);
         }
-        List<SortData> data = DefaultConfig.adjustSort(DataLoader.get().site.getKey(), list, true);
-        if (fragments.size() == data.size() && data.size() == 1) return; // 两次都是空数据
-        if (fragments.size() > 1) return; // 已经初始化的不再重复初始化
+        List<SortData> data = DefaultConfig.adjustSort(home.getKey(), list, true);
+
+        do {
+            if(sortAdapter == null ||sortAdapter.getItemCount() == 0) break;
+            if(!sortAdapter.getData().get(0).name.equals(home.getName())) break;
+            if (fragments.size() == data.size()) return; // 两次都是空数据
+            if (fragments.size() > 1) return; // 已经初始化的不再重复初始化
+        }while (false);
+
+        resetViewPager();
         sortAdapter.setNewData(data);
-        initViewPager(result, DataLoader.get().site.getName());
+        initViewPager(result, home.getName());
     }
 
     private void initViewPager(Result result, String siteName) {
@@ -261,8 +250,8 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
         mViewPager.setCurrentItem(mViewPager.getCurrentItem(), false);
         App.post(() -> {
             View v = mBinding.mGridView.getChildAt(0);
-            if(v != null) v.requestFocus();
-        } , 60);
+            if (v != null) v.requestFocus();
+        }, 60);
     }
 
     @Override
@@ -293,20 +282,15 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
-            if(mViewPager.getCurrentItem() == 0){
+            if (mViewPager.getCurrentItem() == 0) {
                 showSiteSwitch();
-            }else{
+            } else {
                 int postion = mViewPager.getCurrentItem();
                 View view = mBinding.mGridView.getChildAt(postion);
-                if(view != null) onItemSelect(view,postion);
+                if (view != null) onItemSelect(view, postion);
             }
         }
         return super.dispatchKeyEvent(event);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     void showSiteSwitch() {
@@ -316,10 +300,10 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
         super.onRefreshEvent(event);
-        if (event.getType() == RefreshEvent.Type.VIDEO)  initDataFromNet(true);
+        if (event.getType() == RefreshEvent.Type.VIDEO) initDataFromNet();
         if (event.getType() == RefreshEvent.Type.SIZE) {
             LayoutUtil.get().updateLayoutSize();
-            initDataFromNet(true);
+            initDataFromNet();
         }
     }
 
@@ -341,7 +325,7 @@ public class HomeActivity extends BaseActivity implements SiteCallback {
     @Override
     public void setSite(Site item) {
         ApiConfig.get().setHome(item);
-        initDataFromNet(true);
+        initDataFromNet();
     }
 
     @Override

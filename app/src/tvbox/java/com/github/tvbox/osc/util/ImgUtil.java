@@ -37,7 +37,7 @@ public class ImgUtil {
     }
 
     // 图片选中动画
-    public static TvRecyclerView.OnItemListener animate() {
+    public static TvRecyclerView.OnItemListener animate(float x, float y) {
         return new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
@@ -46,12 +46,16 @@ public class ImgUtil {
 
             @Override
             public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
-                itemView.animate().scaleX(1.10f).scaleY(1.10f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
+                itemView.animate().scaleX(x).scaleY(y).setDuration(300).setInterpolator(new BounceInterpolator()).start();
             }
 
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
             }
         };
+    }
+
+    public static TvRecyclerView.OnItemListener animate() {
+        return animate(1.10f, 1.10f);
     }
 }

@@ -6,6 +6,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewbinding.ViewBinding;
+
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
@@ -22,17 +27,11 @@ import com.github.tvbox.osc.ui.tv.widget.LoadMoreView;
 import com.github.tvbox.osc.util.DataLoader;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.ImgUtil;
-import com.kingja.loadsir.callback.Callback;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
 
 import java.util.Stack;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.viewbinding.ViewBinding;
 
 public class GridFragment extends BaseLazyFragment {
     private SortData sortData = null;
@@ -171,7 +170,12 @@ public class GridFragment extends BaseLazyFragment {
             gridAdapter.setEnableLoadMore(true);
             sourceViewModel.categoryContent(ApiConfig.get().getHome().getKey(), sortData.id, page + "", true, sortData.filterSelect);
         }, mGridView);
-        mGridView.setOnItemListener(ImgUtil.animate());
+        if(isFolderMode()){
+            mGridView.setOnItemListener(ImgUtil.animate(1.05f,1.05f));
+        }else{
+            mGridView.setOnItemListener(ImgUtil.animate());
+        }
+
         gridAdapter.setOnItemClickListener((adapter, view, position) -> {
             FastClickCheckUtil.check(view);
             Vod video = gridAdapter.getData().get(position);
@@ -232,6 +236,24 @@ public class GridFragment extends BaseLazyFragment {
 
     public boolean isLoad() {
         return isLoad || !mGrids.empty(); //如果有缓存页的话也可以认为是加载了数据的
+    }
+
+
+    @Override
+    protected void showLoading() {
+        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    protected void showSuccess() {
+        super.showSuccess();
+        mBinding.progress.getRoot().setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void showEmpty() {
+        super.showEmpty();
+        mBinding.progress.getRoot().setVisibility(View.GONE);
     }
 
     private void initData() {

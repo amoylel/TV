@@ -2,7 +2,6 @@ package com.github.tvbox.osc.ui.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,12 +14,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.github.tvbox.osc.callback.EmptyCallback;
 import com.github.tvbox.osc.callback.LoadingCallback;
 import com.github.tvbox.osc.ui.activity.BaseActivity;
-import com.github.tvbox.osc.ui.dialog.LoadingDialog;
-import com.github.tvbox.osc.util.DataLoader;
 import com.kingja.loadsir.callback.Callback;
 import com.kingja.loadsir.core.LoadService;
 import com.kingja.loadsir.core.LoadSir;
@@ -59,14 +55,14 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
     protected Context mContext;
     protected Activity mActivity;
     private LoadService mLoadService;
-    private LoadingDialog loadingDialog;
+
+
     protected abstract ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container);
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mContext = context;
         mActivity = (Activity) context;
-        loadingDialog = new LoadingDialog(mActivity);
     }
 
     @Nullable
@@ -265,6 +261,7 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
     }
     protected void setLoadSir2(View view, Callback.OnReloadListener callback) {
         mLoadService = LoadSir.getDefault().register(view, callback);
+
     }
 
     protected void showLoading() {
@@ -285,17 +282,6 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
         }
     }
 
-    public void jumpActivity(Class<? extends BaseActivity> clazz) {
-        Intent intent = new Intent(mContext, clazz);
-        startActivity(intent);
-    }
-
-    public void jumpActivity(Class<? extends BaseActivity> clazz, Bundle bundle) {
-        Intent intent = new Intent(mContext, clazz);
-        intent.putExtras(bundle);
-        startActivity(intent);
-    }
-
     @Override
     public float getSizeInDp() {
         if (getActivity() != null && getActivity() instanceof CustomAdapt)
@@ -311,13 +297,7 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
     }
 
     public void waitLoading(Runnable rb){
-        if(DataLoader.get().isLoaded()){
-            if(this.loadingDialog.isShowing()) this.loadingDialog.hide();
-            App.post(rb);
-        }else {
-            if(!this.loadingDialog.isShowing()) this.loadingDialog.show();
-            App.post(()-> waitLoading(rb), 10);
-        }
+        ((BaseActivity )getActivity()).waitLoading(rb);
     }
 
 }

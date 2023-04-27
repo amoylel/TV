@@ -5,7 +5,16 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:orientation="vertical">
+    android:orientation="horizontal">
+
+    <include
+        android:id="@+id/progress"
+        layout="@layout/view_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:visibility="visible" />
+
 
     <com.owen.tvrecyclerview.widget.TvRecyclerView
         android:id="@+id/mGridView"
@@ -20,4 +29,6 @@
         app:tv_horizontalSpacingWithMargins="@dimen/vs_15"
         app:tv_selectedItemIsCentered="true"
         app:tv_verticalSpacingWithMargins="@dimen/vs_15" />
+
+
 </LinearLayout>

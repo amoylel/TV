@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="ts_16">12sp</dimen>
+    <dimen name="ts_18">13sp</dimen>
     <dimen name="ts_20">15sp</dimen>
     <dimen name="ts_22">16sp</dimen>
     <dimen name="ts_24">18sp</dimen>
